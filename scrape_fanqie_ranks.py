@@ -126,8 +126,23 @@ def run_scraper(limit=30, sleep_sec=5):
                 const cards = Array.from(bookMap.values());
                 const results = [];
                 for (const item of cards) {
-                    let titleNode = item.querySelector('h4, .title, h1') || item.querySelector('a[href^="/page/"]');
-                    let title = titleNode ? titleNode.innerText.trim() : "未知";
+                    let imgNode = item.querySelector('img');
+                    let cover = imgNode ? imgNode.getAttribute('src') : "";
+                    
+                    let title = "";
+                    if (imgNode && imgNode.getAttribute('alt')) {
+                        title = imgNode.getAttribute('alt').trim();
+                    }
+                    if (!title) {
+                        let textTitleNode = item.querySelector('h4, .title, h1') || item.querySelector('a[href^="/page/"]');
+                        if (textTitleNode) {
+                            let text = textTitleNode.innerText.trim();
+                            if (text && !/^\\d+$/.test(text)) {
+                                title = text;
+                            }
+                        }
+                    }
+                    if (!title) title = "未知";
                     if (title.includes("榜单说明")) continue;
                     
                     let authorNode = item.querySelector('.author, .author-name') || item.querySelector('a[href^="/author-page/"]');
@@ -145,11 +160,12 @@ def run_scraper(limit=30, sleep_sec=5):
                     let introNode = item.querySelector('.intro, .abstract, .desc');
                     let intro = introNode ? introNode.innerText.trim() : "暂无简介";
                     
-                    results.append({
+                    results.push({
                         title: title,
                         author: author,
                         reads: reads,
                         intro: intro,
+                        cover: cover,
                         url: item.querySelector('a[href^="/page/"]').getAttribute('href')
                     });
                 }
@@ -158,8 +174,6 @@ def run_scraper(limit=30, sleep_sec=5):
             """
             
             try:
-                # Need to use array push in JS instead of append which is python
-                extract_js = extract_js.replace('results.append', 'results.push')
                 books_data = page.evaluate(extract_js)
             except Exception as e:
                 print(f"执行JS抽取失败 {cat_name}: {e}")
@@ -172,6 +186,7 @@ def run_scraper(limit=30, sleep_sec=5):
                 a = decode_text(b.get("author", ""))
                 r_raw = decode_text(b.get("reads", ""))
                 i = decode_text(b.get("intro", "")).replace("\\n", " ")
+                c = b.get("cover", "")
                 
                 # Cleanup "Reads" string (e.g. "已完结 在读：34.8万" -> "34.8万")
                 if "在读" in r_raw:
@@ -189,6 +204,7 @@ def run_scraper(limit=30, sleep_sec=5):
                     "author": a,
                     "reads": cleaned_r,
                     "intro": i,
+                    "cover": c,
                     "url": "https://fanqienovel.com" + b.get("url", "")
                 })
             
@@ -203,7 +219,11 @@ def run_scraper(limit=30, sleep_sec=5):
                     reads = book.get('reads', '未知')
                     intro = book.get('intro', '无')
                     url = book.get('url', '#')
+                    cover = book.get('cover', '')
+                    
                     f.write(f"### {idx+1}. [{title}]({url})\n")
+                    if cover:
+                        f.write(f"![{title}封面]({cover})\n\n")
                     f.write(f"- **作者**: {author}\n")
                     f.write(f"- **在读**: {reads}\n")
                     f.write(f"- **简介**: {intro}\n\n")
