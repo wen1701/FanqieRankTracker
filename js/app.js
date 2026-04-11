@@ -194,6 +194,25 @@ document.addEventListener('DOMContentLoaded', () => {
         typewriterEffect(summary);
     }
 
+    // ========== Simple Markdown renderer ==========
+    function renderMarkdown(text) {
+        let html = escapeHtml(text);
+        // Headers: ### h3, ## h2 (rare in summaries but support it)
+        html = html.replace(/^### (.+)$/gm, '<strong style="font-size:0.95rem">$1</strong>');
+        html = html.replace(/^## (.+)$/gm, '<strong style="font-size:1rem">$1</strong>');
+        // Bold: **text**
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        // Italic: *text*
+        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        // Book titles: 《》 highlight
+        html = html.replace(/《(.+?)》/g, '<span style="color:var(--accent);font-weight:500">《$1》</span>');
+        // Unordered lists: - item or * item
+        html = html.replace(/^[-*] (.+)$/gm, '<span style="display:block;padding-left:1em;text-indent:-0.6em">• $1</span>');
+        // Numbered lists: 1. item
+        html = html.replace(/^(\d+)\. (.+)$/gm, '<span style="display:block;padding-left:1em;text-indent:-0.6em">$1. $2</span>');
+        return html;
+    }
+
     // ========== Typewriter effect ==========
     function typewriterEffect(text) {
         // Cancel any previous animation
@@ -214,14 +233,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function type() {
             if (index < text.length) {
-                // Render text so far with cursor
+                // During typing, show escaped plain text with cursor
                 const displayed = text.substring(0, index + 1);
                 aiContent.innerHTML = escapeHtml(displayed) + '<span class="cursor"></span>';
                 index++;
                 typingTimer = setTimeout(type, speed);
             } else {
-                // Done typing, remove cursor after a moment
-                aiContent.innerHTML = escapeHtml(text);
+                // Done typing — render full markdown
+                aiContent.innerHTML = renderMarkdown(text);
             }
         }
 
