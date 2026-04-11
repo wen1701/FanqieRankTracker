@@ -29,11 +29,12 @@ OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 def run_scraper(limit=30, sleep_sec=5):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     date_str = datetime.now().strftime("%Y%m%d")
-    output_file = os.path.join(OUTPUT_DIR, f"fanqie_female_new_ranks_{date_str}.md")
+    output_file = os.path.join(OUTPUT_DIR, f"fanqie_female_new_ranks_{date_str}.json")
     state_file = os.path.join(OUTPUT_DIR, f"task_state_{date_str}.json")
     
     # ------------- 状态恢复逻辑 -------------
     completed_cats = []
+    all_categories = []  # 收集所有分类数据
     if os.path.exists(state_file):
         with open(state_file, "r", encoding="utf-8") as f:
             try:
@@ -41,11 +42,14 @@ def run_scraper(limit=30, sleep_sec=5):
                 completed_cats = state.get("completed", [])
             except:
                 pass
-                
-    if not os.path.exists(output_file) or len(completed_cats) == 0:
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write("# 番茄小说女频新书榜采集报告\n\n")
-            f.write(f"**采集日期**: {datetime.now().strftime('%Y-%m-%d')}\n\n")
+    # 如果有中断恢复的数据，先加载已有的 JSON
+    if os.path.exists(output_file) and len(completed_cats) > 0:
+        with open(output_file, "r", encoding="utf-8") as f:
+            try:
+                existing = json.load(f)
+                all_categories = existing.get("categories", [])
+            except:
+                pass
     # ----------------------------------------
     
     with sync_playwright() as p:
@@ -208,27 +212,21 @@ def run_scraper(limit=30, sleep_sec=5):
                     "url": "https://fanqienovel.com" + b.get("url", "")
                 })
             
-            # 增量追加写入 Markdown
-            with open(output_file, 'a', encoding='utf-8') as f:
-                f.write(f"## {cat_name}\n\n")
-                if not category_books:
-                    f.write("> 本次暂无数据或抓取失败\n\n")
-                for idx, book in enumerate(category_books):
-                    title = book.get('title', '未知')
-                    author = book.get('author', '未知')
-                    reads = book.get('reads', '未知')
-                    intro = book.get('intro', '无')
-                    url = book.get('url', '#')
-                    cover = book.get('cover', '')
-                    
-                    f.write(f"### {idx+1}. [{title}]({url})\n")
-                    if cover:
-                        f.write(f"![{title}封面]({cover})\n\n")
-                    f.write(f"- **作者**: {author}\n")
-                    f.write(f"- **在读**: {reads}\n")
-                    f.write(f"- **简介**: {intro}\n\n")
+            # 收集分类数据到内存，并增量写入 JSON
+            all_categories.append({
+                "name": cat_name,
+                "books": category_books
+            })
             
-            # 更新已跳过的检查状态记录
+            # 每完成一个分类就写入 JSON（防止中断丢数据）
+            snapshot = {
+                "date": datetime.now().strftime('%Y-%m-%d'),
+                "categories": all_categories
+            }
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(snapshot, f, ensure_ascii=False, indent=2)
+            
+            # 更新状态记录
             completed_cats.append(cat_name)
             with open(state_file, "w", encoding="utf-8") as f:
                 json.dump({"completed": completed_cats}, f, ensure_ascii=False)

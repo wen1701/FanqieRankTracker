@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄女频新书榜 · 风向标</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <meta name="description" content="番茄小说女频新书榜趋势分析与风向标">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>🏆 番茄风向标</h1>
+                <p id="update-date" class="update-date">加载中...</p>
+            </div>
+            <nav class="category-nav">
+                <ul id="category-list">
+                    <li class="loading-item">加载中...</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <header class="main-header">
+                <h2 id="current-category-title">全部分类</h2>
+                <!-- 移动端菜单按钮 -->
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="菜单">☰</button>
+            </header>
+
+            <!-- 风向标区域 -->
+            <section class="trend-panel" id="trend-panel">
+                <div class="trend-stats" id="trend-stats"></div>
+                <div class="trend-ai" id="trend-ai">
+                    <div class="ai-label">📊 AI 风向分析</div>
+                    <div class="ai-content" id="ai-content"></div>
+                </div>
+            </section>
+
+            <!-- 书籍瀑布流 -->
+            <section class="books-waterfall" id="books-waterfall">
+                <!-- 书籍卡片由 JS 动态渲染 -->
+            </section>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
