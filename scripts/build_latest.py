@@ -225,7 +225,10 @@ def generate_ai_summaries(categories: list, trends: dict,
                     max_tokens=500,
                     temperature=0.7,
                 )
-                trends[cat_name]["summary"] = response.choices[0].message.content.strip()
+                content = response.choices[0].message.content
+                if not content or not content.strip():
+                    raise ValueError("API 返回空内容")
+                trends[cat_name]["summary"] = content.strip()
                 print(f"  ✅ AI 总结: {cat_name}")
                 success = True
                 break
