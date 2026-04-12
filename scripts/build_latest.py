@@ -246,6 +246,8 @@ def main():
     parser = argparse.ArgumentParser(description="构建 latest_ranks.json")
     parser.add_argument("--force", action="store_true",
                         help="强制重新生成所有 AI 总结，忽略已有总结")
+    parser.add_argument("--date", type=str, default="",
+                        help="指定目标日期 (YYYY-MM-DD)，默认使用最新快照")
     args = parser.parse_args()
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -262,16 +264,30 @@ def main():
         print("未找到任何 JSON 快照文件。请先运行迁移脚本或爬虫。")
         sys.exit(1)
 
-    # 加载最新的快照
-    latest_path = snapshots[-1]
+    # 根据 --date 参数选择目标快照
+    if args.date:
+        target_date_compact = args.date.replace("-", "")
+        target_path = os.path.join(
+            data_dir, f"fanqie_female_new_ranks_{target_date_compact}.json"
+        )
+        if not os.path.exists(target_path):
+            print(f"❌ 未找到 {args.date} 的快照文件: {target_path}")
+            sys.exit(1)
+        latest_path = target_path
+        # 找到该快照在列表中的位置，取前一个作为对比
+        target_idx = snapshots.index(target_path) if target_path in snapshots else -1
+    else:
+        latest_path = snapshots[-1]
+        target_idx = len(snapshots) - 1
+
     latest_data = load_snapshot(latest_path)
-    print(f"最新快照: {os.path.basename(latest_path)} ({latest_data['date']})")
+    print(f"目标快照: {os.path.basename(latest_path)} ({latest_data['date']})")
 
     # 加载前一天的快照（如果有）
     prev_data = None
     prev_date = ""
-    if len(snapshots) >= 2:
-        prev_path = snapshots[-2]
+    if target_idx > 0:
+        prev_path = snapshots[target_idx - 1]
         prev_data = load_snapshot(prev_path)
         prev_date = prev_data.get("date", "")
         print(f"对比快照: {os.path.basename(prev_path)} ({prev_date})")
