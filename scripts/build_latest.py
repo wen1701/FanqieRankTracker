@@ -194,7 +194,7 @@ def generate_ai_summaries(categories: list, trends: dict,
         print("⚠️  openai 库未安装，跳过 AI 总结。pip install openai")
         return trends
 
-    client = OpenAI(api_key=api_key, base_url=base_url)
+    client = OpenAI(api_key=api_key, base_url=base_url, timeout=60.0)
     existing_trends = existing_trends or {}
 
     skipped = 0
