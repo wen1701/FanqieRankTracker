@@ -1,17 +1,17 @@
 {
-  "date": "2026-09-17",
-  "prev_date": "2026-09-16",
+  "date": "2026-09-18",
+  "prev_date": "2026-09-17",
   "types": [
     {
       "type": "all",
       "url": "api/lastest/all.json",
       "category_count": 18,
-      "book_count": 350
+      "book_count": 358
     },
     {
       "type": "古风世情",
       "url": "api/lastest/%E5%8F%A4%E9%A3%8E%E4%B8%96%E6%83%85.json",
-      "book_count": 20
+      "book_count": 18
     },
     {
       "type": "科幻末世",
@@ -51,7 +51,7 @@
     {
       "type": "宫斗宅斗",
       "url": "api/lastest/%E5%AE%AB%E6%96%97%E5%AE%85%E6%96%97.json",
-      "book_count": 10
+      "book_count": 20
     },
     {
       "type": "悬疑脑洞",
