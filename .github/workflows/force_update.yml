@@ -27,7 +27,7 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         ref: main
@@ -59,7 +59,7 @@ jobs:
         echo "📅 目标日期: $DASH_DATE (is_today=$( [ "$TARGET" = "$TODAY" ] && echo true || echo false ))"
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.9'
         cache: 'pip'
@@ -89,7 +89,7 @@ jobs:
       run: git pull --rebase --autostash origin main
 
     - name: Commit and Push Changes
-      uses: stefanzweifel/git-auto-commit-action@v5
+      uses: stefanzweifel/git-auto-commit-action@v7
       with:
         commit_message: "[Force] Re-summarize Fanqie ranks (${{ steps.date.outputs.dash_date }})"
         file_pattern: data/*
@@ -97,15 +97,15 @@ jobs:
 
     # ---- Deploy to GitHub Pages ----
     - name: Setup Pages
-      uses: actions/configure-pages@v5
+      uses: actions/configure-pages@v6
       with:
         enablement: true
 
     - name: Upload Pages artifact
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v5
       with:
         path: '.'
 
     - name: Deploy to GitHub Pages
       id: deployment
-      uses: actions/deploy-pages@v4
+      uses: actions/deploy-pages@v5

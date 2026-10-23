@@ -2,7 +2,7 @@ import os
 import json
 import time
 from datetime import datetime
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError, sync_playwright
 
 START_CODE = 58344  # 0xE3E8
 CHAR_SEQUENCE = [
@@ -25,6 +25,18 @@ def decode_text(text: str) -> str:
 # 我们将直接从页面解析所有新书榜类别目录，实现动态抓取
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+
+def open_rank_page(page, url):
+    for attempt in range(3):
+        try:
+            page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            page.wait_for_selector('a[href^="/page/"]', timeout=30000)
+            return
+        except PlaywrightTimeoutError:
+            if attempt == 2:
+                raise
+            print(f"榜单首页加载超时，5 秒后重试 ({attempt + 1}/3)")
+            time.sleep(5)
 
 def run_scraper(limit=30, sleep_sec=5):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -66,8 +78,7 @@ def run_scraper(limit=30, sleep_sec=5):
         # 先访问新书榜的基准前缀页面，以此为入口模拟人工作业
         init_url = "https://fanqienovel.com/rank/0_1_1139"
         print(f"[{datetime.now().strftime('%H:%M:%S')}] 正在初始化并访问基础榜单页：{init_url}")
-        page.goto(init_url, wait_until="load", timeout=15000)
-        page.wait_for_selector('a[href^="/page/"]', timeout=5000)
+        open_rank_page(page, init_url)
         
         # 动态解析页面左侧拥有的所有类别目录 (通过匹配对应的榜单路由规律)
         categories_js = """
